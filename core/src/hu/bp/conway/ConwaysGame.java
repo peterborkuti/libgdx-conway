@@ -2,7 +2,7 @@ package hu.bp.conway;
 
 import hu.bp.common.Util;
 import hu.bp.conway.libgdx.Drawer;
-import hu.bp.conway.libgdx.MouseEvents;
+import hu.bp.conway.libgdx.CameraEvents;
 import hu.bp.conway.modules.Coordinator;
 import hu.bp.conway.modules.Universe;
 
@@ -31,7 +31,7 @@ public class ConwaysGame extends ApplicationAdapter {
 	Texture img;
 	ShapeRenderer renderer;
 	Universe universe;
-	MouseEvents mouse = new MouseEvents();
+	CameraEvents mouse = new CameraEvents(camera);
 	private boolean camWasReset = false;
 	private boolean camWasSet = false;
 
@@ -39,6 +39,7 @@ public class ConwaysGame extends ApplicationAdapter {
 		camera = new OrthographicCamera(WIDTH, HEIGHT);
 
 		camera.translate(WIDTH /2, HEIGHT / 2);
+		mouse.setCamera(camera);
 	}
 
 	@Override
@@ -62,6 +63,19 @@ public class ConwaysGame extends ApplicationAdapter {
 
 	@Override
 	public void render() {
+		Gdx.gl.glClearColor(1, 0, 0, 1);
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+		camera.update();
+		renderer.setProjectionMatrix(camera.combined);
+
+		Drawer.draw(camera, renderer, coordinator.out);
+
+		coordinator.oneStep();
+		coordinator.swap();
+	}
+
+	public void renderOld() {
 		Gdx.gl.glClearColor(1, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
