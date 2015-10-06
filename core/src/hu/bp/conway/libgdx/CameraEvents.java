@@ -2,7 +2,6 @@ package hu.bp.conway.libgdx;
 
 import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
@@ -11,6 +10,12 @@ public class CameraEvents extends InputAdapter {
 
 	public void setCamera(OrthographicCamera camera) {
 		this.camera = camera;
+	}
+
+	public void updateCamera() {
+		if (!cameraMove.equals(Vector3.Zero)) {
+			camera.position.
+		}
 	}
 
 	@Override
@@ -38,7 +43,8 @@ public class CameraEvents extends InputAdapter {
 	public static final int MIN_DY = 10;
 	private int x0 = 0,y0 = 0, x1 = MIN_DX, y1 = MIN_DY;
 	private OrthographicCamera camera;
-
+	private Vector3 prevWorldPos;
+	private Vector3 cameraMove;
 
 	public CameraEvents(OrthographicCamera camera) {
 		this.camera = camera;
@@ -70,10 +76,10 @@ public class CameraEvents extends InputAdapter {
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 		if (Buttons.LEFT == button) {
-			x0 = screenX;
-			y0 = screenY;
+			Vector3 prevScreenPos = new Vector3(screenX, screenY, 0);
+			prevWorldPos = camera.unproject(prevScreenPos);
+			cameraMove.setZero();
 			dragging = true;
-			worldDragStartPosition = camera.unproject(screenCoordscamera.position;
 		}
 
 		return super.touchDown(screenX, screenY, pointer, button);
@@ -81,26 +87,33 @@ public class CameraEvents extends InputAdapter {
 
 	@Override
 	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-		dragging = false;
+		if (Buttons.LEFT == button) {
+			addNewPos(screenX, screenY);
+			dragging = false;
+		}
+
 		return super.touchUp(screenX, screenY, pointer, button);
 	}
 
 	@Override
 	public boolean touchDragged(int screenX, int screenY, int pointer) {
 		if (dragging) {
-			if (screenX > x0) {
-				x1 = screenX;
-			}
-			if (screenY > y0) {
-				y1 = screenY;
-			}
+			addNewPos(screenX, screenY);
 		}
+
 		return super.touchDragged(screenX, screenY, pointer);
 	}
 
 	@Override
 	public boolean mouseMoved(int screenX, int screenY) {
 		return super.mouseMoved(screenX, screenY);
+	}
+
+	private void addNewPos(int screenX, int screenY) {
+		Vector3 newScreenPos = new Vector3(screenX, screenY, 0);
+		Vector3 newWorldPos = camera.unproject(newScreenPos);
+
+		cameraMove.add(newWorldPos.sub(prevWorldPos));
 	}
 
 
