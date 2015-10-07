@@ -19,7 +19,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 
 public class ConwaysGame extends ApplicationAdapter {
-	static final int NUM_OF_THREADS = 4;
+	static final int NUM_OF_THREADS = 2;
 	public static final int WIDTH = 20000;
 	public static final int HEIGHT = 20000;
 
@@ -31,7 +31,7 @@ public class ConwaysGame extends ApplicationAdapter {
 	Texture img;
 	ShapeRenderer renderer;
 	Universe universe;
-	CameraEvents mouse = new CameraEvents(camera);
+	CameraEvents mouse;
 	private boolean camWasReset = false;
 	private boolean camWasSet = false;
 
@@ -44,6 +44,9 @@ public class ConwaysGame extends ApplicationAdapter {
 
 	@Override
 	public void create() {
+		camera = new OrthographicCamera(WIDTH, HEIGHT);
+		mouse = new CameraEvents(camera);
+
 		resetCamera();
 
 		renderer = new ShapeRenderer();
@@ -66,6 +69,7 @@ public class ConwaysGame extends ApplicationAdapter {
 		Gdx.gl.glClearColor(1, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+		mouse.updateCamera();
 		camera.update();
 		renderer.setProjectionMatrix(camera.combined);
 

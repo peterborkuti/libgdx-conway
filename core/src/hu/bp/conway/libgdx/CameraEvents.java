@@ -1,5 +1,7 @@
 package hu.bp.conway.libgdx;
 
+import hu.bp.conway.ConwaysGame;
+
 import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -10,24 +12,6 @@ public class CameraEvents extends InputAdapter {
 
 	public void setCamera(OrthographicCamera camera) {
 		this.camera = camera;
-	}
-
-	public void updateCamera() {
-		if (!cameraMove.equals(Vector3.Zero)) {
-			camera.position.
-		}
-	}
-
-	@Override
-	public boolean keyDown(int keycode) {
-		// TODO Auto-generated method stub
-		return super.keyDown(keycode);
-	}
-
-	@Override
-	public boolean keyUp(int keycode) {
-		// TODO Auto-generated method stub
-		return super.keyUp(keycode);
 	}
 
 	@Override
@@ -41,13 +25,52 @@ public class CameraEvents extends InputAdapter {
 	private boolean dragging = false;
 	public static final int MIN_DX = 10;
 	public static final int MIN_DY = 10;
+	private static final float P = 0.05f;
+	private static final float I = 0.1f;
 	private int x0 = 0,y0 = 0, x1 = MIN_DX, y1 = MIN_DY;
 	private OrthographicCamera camera;
-	private Vector3 prevWorldPos;
-	private Vector3 cameraMove;
+	private Vector3 worldTouchDownPos;
+	private float goalX;
+	private float goalY;
+	private float integralX;
+	private float integralY;
+
+	private final float MINDIFFX = ConwaysGame.WIDTH / ConwaysGame.UNIVERSE_N;
+	private final float MINDIFFY = ConwaysGame.HEIGHT / ConwaysGame.UNIVERSE_N;
 
 	public CameraEvents(OrthographicCamera camera) {
 		this.camera = camera;
+	}
+
+	public void updateCamera() {
+		if (dragging) {
+			float errX = goalX - camera.position.x;
+			float errY = goalY - camera.position.y;
+
+			if ((Math.abs(errX) > MINDIFFX) ||
+				(Math.abs(errY) > MINDIFFY)) {
+
+					float proportionalX = P * errX;
+					float proportionalY = P * errY;
+			
+					integralX += errX;
+					integralY += errY;
+			
+			
+					float controlX = proportionalX + I * integralX;
+					float controlY = proportionalY + I * integralY;
+	
+	
+					System.out.println("diff:" + errX + "," + errY + "," + controlX + "," + controlY);
+					camera.position.x += controlX;
+					camera.position.y += controlY;
+			}
+			else {
+				integralX = 0;
+				integralY = 0;
+				dragging = false;
+			}
+		}
 	}
 
 	public Rectangle getRectangle() {
@@ -76,44 +99,21 @@ public class CameraEvents extends InputAdapter {
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 		if (Buttons.LEFT == button) {
-			Vector3 prevScreenPos = new Vector3(screenX, screenY, 0);
-			prevWorldPos = camera.unproject(prevScreenPos);
-			cameraMove.setZero();
+			worldTouchDownPos = camera.unproject(new Vector3(screenX, screenY, 0));
+			goalX = worldTouchDownPos.x;
+			goalY = worldTouchDownPos.y;
 			dragging = true;
 		}
 
+		if (Buttons.RIGHT == button) {
+			goalX = ConwaysGame.WIDTH / 2;
+			goalY = ConwaysGame.HEIGHT / 2;
+			dragging = true;
+		}
+
+		System.out.println("TouchDown:" + screenX + "," + screenY);
+
 		return super.touchDown(screenX, screenY, pointer, button);
-	}
-
-	@Override
-	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-		if (Buttons.LEFT == button) {
-			addNewPos(screenX, screenY);
-			dragging = false;
-		}
-
-		return super.touchUp(screenX, screenY, pointer, button);
-	}
-
-	@Override
-	public boolean touchDragged(int screenX, int screenY, int pointer) {
-		if (dragging) {
-			addNewPos(screenX, screenY);
-		}
-
-		return super.touchDragged(screenX, screenY, pointer);
-	}
-
-	@Override
-	public boolean mouseMoved(int screenX, int screenY) {
-		return super.mouseMoved(screenX, screenY);
-	}
-
-	private void addNewPos(int screenX, int screenY) {
-		Vector3 newScreenPos = new Vector3(screenX, screenY, 0);
-		Vector3 newWorldPos = camera.unproject(newScreenPos);
-
-		cameraMove.add(newWorldPos.sub(prevWorldPos));
 	}
 
 
